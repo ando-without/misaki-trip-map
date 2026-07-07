@@ -137,8 +137,10 @@ header{position:relative;z-index:1000;flex-shrink:0;
 .accom-name{font-weight:700;color:var(--red-d)}
 
 /* MAP PIN (OverlayView) */
-.ap-pin{display:flex;flex-direction:column;align-items:center;filter:drop-shadow(0 2px 4px rgba(0,0,0,.4));transition:transform .12s}
+.ap-pin{display:flex;flex-direction:column;align-items:center;filter:drop-shadow(0 2px 4px rgba(0,0,0,.4));transition:transform .15s}
 .ap-pin:hover{transform:scale(1.14)}
+.sel .ap-pin{transform:scale(1.4)}                 /* 활성(선택) 마커 강조 */
+.sel .ap-pin-head{border-color:#fff;box-shadow:0 0 0 3px rgba(194,64,42,.4)}
 .ap-pin-head{width:29px;height:29px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);
              background:var(--red);display:flex;align-items:center;justify-content:center;border:2.5px solid #fdf8ec}
 .ap-pin-head.end{background:var(--green)}
@@ -462,16 +464,23 @@ const isMobile=()=>matchMedia('(max-width:768px)').matches;
 
 let suppressScrollSync=false;   // 프로그램 스크롤 중 캐러셀 스크롤 동기화 억제
 
-function setActive(id){
+function markSelectedMarker(id){
+  STOPS.forEach(x=>{ if(x.marker&&x.marker.el){ const on=x.id===id;
+    x.marker.el.classList.toggle('sel',on); x.marker.el.style.zIndex=on?'20':'1'; }});
+}
+function setActive(id, skipScroll){
   if(activeId){const el=document.getElementById('si-'+activeId);if(el)el.classList.remove('active');}
   activeId=id;
   const el=document.getElementById('si-'+id);
   if(el){
     el.classList.add('active');
-    suppressScrollSync=true;
-    el.scrollIntoView({behavior:'smooth',block:'center',inline:'center'});  // 세로=가운데, 가로 캐러셀=가운데
-    setTimeout(()=>{suppressScrollSync=false;},500);
+    if(!skipScroll){
+      suppressScrollSync=true;
+      el.scrollIntoView({behavior:'smooth',block:'center',inline:'center'});  // 세로=가운데, 가로 캐러셀=가운데
+      setTimeout(()=>{suppressScrollSync=false;},500);
+    }
   }
+  markSelectedMarker(id);   // 지도 마커도 강조
 }
 /* 마커·카드 공통: 활성화(가운데 스크롤·하이라이트) + 지도 이동 */
 function focusStop(s){
@@ -574,7 +583,10 @@ async function initMap(){
     s.marker=marker; s._ll=ll;
     bounds.extend(ll);
   });
-  map.fitBounds(bounds,60);
+  // 첫 뷰 = 1번 지점 포커스 (카드는 처음 위치 유지)
+  map.setCenter(STOPS[0]._ll);
+  map.setZoom(14);
+  setActive(STOPS[0].id, true);
 
   /* Directions 도로 경로 */
   const ds=new DirectionsService();
@@ -663,7 +675,8 @@ initMap();
         if(activeId){const p=document.getElementById('si-'+activeId);if(p)p.classList.remove('active');}
         activeId=best.id;
         document.getElementById('si-'+best.id)?.classList.add('active');
-        if(map && best._ll) map.panTo(best._ll);   // 스크롤 재유발 없이 지도만 이동
+        markSelectedMarker(best.id);                       // 활성 마커 강조
+        if(map && best._ll){ map.panTo(best._ll); map.setZoom(14); }  // 지도도 해당 스팟으로
       }
     },120);
   },{passive:true});
