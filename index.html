@@ -174,7 +174,9 @@ header{position:relative;z-index:1000;flex-shrink:0;
 /* 카드 안 상세 섹션 (데스크톱: 인라인 / 모바일: 숨김 → 더보기 시트) */
 .sc-detail{margin-top:.55rem;padding-top:.55rem;border-top:1px dashed var(--tan-d)}
 .sc-transit-inline{display:none}   /* 모바일 캐러셀에서만 노출 */
-.sc-more{display:none;width:100%;margin-top:.5rem;padding:.4rem;cursor:none;
+.sc-actions{display:flex;align-items:stretch;gap:.5rem;margin-top:.5rem}
+.sc-actions .sc-maplink{margin-top:0}
+.sc-more{display:none;flex:1;justify-content:center;padding:.42rem;cursor:none;
   background:var(--paper-2);color:var(--green-d);border:1px solid var(--tan-d);border-radius:5px;
   font-family:var(--font);font-size:.7rem;font-weight:700}
 .sc-more:active{background:var(--tan)}
@@ -245,7 +247,8 @@ header{position:relative;z-index:1000;flex-shrink:0;
   .sc-img{height:156px}.sc-img img{height:156px}
   .sc-body{padding:.65rem .8rem .7rem}
   .sc-detail{display:none}          /* 모바일: 인라인 상세 숨김 → 더보기 시트로 */
-  .sc-more{display:block}           /* 더보기 버튼 노출 */
+  .sc-more{display:flex;align-items:center;justify-content:center}  /* 더보기 버튼 노출 */
+  .sc-actions .sc-maplink{flex:1;justify-content:center}            /* 자세히 보기 / 구글맵 반반 */
 }
 @media (max-width:768px) and (orientation:landscape){
   #map{height:52vh;height:52dvh}
@@ -618,8 +621,10 @@ function buildSidebar(){
         ${tagsHtml?`<div class="sc-tags">${tagsHtml}</div>`:''}
         ${s.food?`<div class="sc-food">${s.food}</div>`:''}
         ${detailSectionsHtml(s)}
-        <button class="sc-more" type="button">🎬 장면·장소 자세히 보기</button>
-        <a class="sc-maplink" href="${s.gmapUrl}" target="_blank" rel="noopener">📍 구글맵에서 열기</a>
+        <div class="sc-actions">
+          <button class="sc-more" type="button">🎬 자세히 보기</button>
+          <a class="sc-maplink" href="${s.gmapUrl}" target="_blank" rel="noopener">📍 구글맵</a>
+        </div>
       </div>`;
     card.querySelector('.sc-more')?.addEventListener('click',e=>{ e.stopPropagation(); openSheet(s.id); });
     card.addEventListener('click',e=>{
